@@ -3,8 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neuroelectrics Dx — Salesforce Sizing Model v3</title>
+<title>NE Dx Fundraising Model</title>
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; background: #f8f8f6; color: #1a1a1a;
+    padding: 2rem; line-height: 1.6; overflow-x: hidden;
+  }
+  h1 { font-size: 20px; font-weight: 500; color: #003057; margin-bottom: 4px; }
+  h2 { font-size: 18px; font-weight: 500; color: #003057; margin-bottom: 4px; }
+
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; background: #f8f8f6; color: #1a1a1a;
+    padding: 2rem; line-height: 1.6;
+  }
+  h1 { font-size: 20px; font-weight: 500; color: #003057; margin-bottom: 4px; }
+  .rev-subtitle { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
+  .rev-toggle-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .rev-tog {
+    display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border-radius: 8px; border: 0.5px solid #d0d0d0; cursor: pointer;
+    font-size: 13px; color: #1a1a1a; background: #fff; transition: opacity .15s; user-select: none;
+  }
+  .rev-tog:hover { background: #f2f2f0; }
+  .rev-tog.off { opacity: 0.35; }
+  .rev-tog-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .rev-view-btns { display: flex; gap: 6px; margin-left: auto; }
+  .rev-vbtn {
+    padding: 5px 13px; border-radius: 8px; border: 0.5px solid #d0d0d0;
+    cursor: pointer; font-size: 12px; color: #666; background: #fff; transition: all .15s;
+  }
+  .rev-vbtn:hover { background: #f2f2f0; }
+  .rev-vbtn.active { background: #eaeae8; color: #1a1a1a; border-color: #aaa; font-weight: 500; }
+  .rev-metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .rev-met { background: #efefed; border-radius: 8px; padding: 10px 14px; }
+  .rev-met-lbl { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .rev-met-val { font-size: 20px; font-weight: 500; color: #1a1a1a; }
+  .rev-met-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .chart-title {
+    font-size: 13px; font-weight: 600; color: #003057;
+    text-align: center; margin-bottom: 8px; letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .rev-chart-wrap { position: relative; width: 100%; height: 340px; }
+  .rev-legend-note { margin-top: 10px; font-size: 11px; color: #aaa; display: flex; gap: 20px; flex-wrap: wrap; }
+
+  /* ── Summary table ── */
+  .summary-wrap { margin-top: 2rem; overflow-x: auto; border-radius: 8px; border: 0.5px solid #ddd; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+  .summary-table th {
+    padding: 10px 16px; font-size: 12px; font-weight: 600;
+    text-align: right; white-space: nowrap;
+  }
+  .summary-table th:first-child { text-align: left; }
+  .summary-table td { padding: 9px 16px; text-align: right; white-space: nowrap; }
+  .summary-table td:first-child { text-align: left; }
+  .summary-table tr { border-bottom: 0.5px solid #e8e8e8; }
+  .summary-table tr:last-child { border-bottom: none; }
+  .row-header { background: #7BA1B6; }
+  .row-header th { color: #fff; font-weight: 700; font-size: 13px; }
+  .row-growth td { background: #7BA1B6; color: #fff; font-weight: 600; }
+  .row-growth td:first-child { color: #003057; }
+  .seg-name { font-weight: 600; display: block; }
+  .seg-sub { font-size: 11px; font-weight: 400; color: #aaa; display: block; margin-top: 1px; }
+  .row-seg-r { background: #fff; }
+  .row-seg-p { background: #fafaf8; }
+  .row-seg-c { background: #fff; }
+  .row-seg-r td, .row-seg-p td, .row-seg-c td { color: #1a1a1a; }
+  .row-total { background: #7BA1B6; }
+  .row-total td { color: #fff; font-weight: 700; font-size: 13px; }
+
+  .rev-data-note { margin-top: 1.5rem; font-size: 12px; color: #aaa; }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e8e8e8; }
+    h1 { color: #8bb8d8; }
+    .subtitle, .met-lbl, .met-sub, .legend-note, .rev-data-note { color: #888; }
+    .rev-tog { background: #2a2a2a; border-color: #444; color: #e8e8e8; }
+    .rev-tog:hover { background: #333; }
+    .rev-vbtn { background: #2a2a2a; border-color: #444; color: #aaa; }
+    .rev-vbtn:hover { background: #333; }
+    .rev-vbtn.active { background: #3a3a3a; color: #e8e8e8; border-color: #666; }
+    .rev-met { background: #2a2a2a; }
+    .rev-met-val { color: #e8e8e8; }
+    .summary-wrap { border-color: #333; }
+    .summary-table tr { border-bottom-color: #2a2a2a; }
+    .row-seg-r, .row-seg-c { background: #222; }
+    .row-seg-p { background: #1e1e1e; }
+    .row-seg-r td, .row-seg-p td, .row-seg-c td { color: #e8e8e8; }
+    .row-growth td { background: #7BA1B6; color: #fff; font-weight: 600; }
+  }
+
+
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -114,9 +212,360 @@
     input[type=range]::-webkit-slider-thumb { background: #8bb8d8; }
     input[type=range]::-moz-range-thumb { background: #8bb8d8; }
   }
+
+
 </style>
 </head>
 <body>
+
+<h1>Neuroelectrics Dx — Revenue by Segment</h1>
+<p class="rev-subtitle">2025–2031 &nbsp;·&nbsp; $000 USD &nbsp;·&nbsp; Actuals 2025, Forecast 2026–2031</p>
+
+<div class="rev-toggle-row">
+  <div class="rev-tog" id="tog-research" onclick="toggleSeg('research')">
+    <span class="rev-tog-dot" style="background:#BA7517;"></span> Research
+  </div>
+  <div class="rev-tog" id="tog-clinical" onclick="toggleSeg('clinical')">
+    <span class="rev-tog-dot" style="background:#1D9E75;"></span> Clinical
+  </div>
+  <div class="rev-tog" id="tog-pharma" onclick="toggleSeg('pharma')">
+    <span class="rev-tog-dot" style="background:#378ADD;"></span> Pharma
+  </div>
+  <div class="rev-tog" id="tog-total" onclick="toggleSeg('total')">
+    <span class="rev-tog-dot" style="background:#888; border-radius:50%;"></span> Total line
+  </div>
+  <div class="rev-view-btns">
+    <button class="rev-vbtn active" id="vbtn-stacked" onclick="setView('stacked')">Stacked</button>
+    <button class="rev-vbtn" id="vbtn-grouped" onclick="setView('grouped')">Grouped</button>
+    <button class="rev-vbtn" id="vbtn-pct" onclick="setView('pct')">% share</button>
+  </div>
+</div>
+
+<div class="rev-metrics">
+  <div class="rev-met"><div class="rev-met-lbl">2025 actual</div><div class="rev-met-val" id="m25">$7.2M</div><div class="rev-met-sub">baseline</div></div>
+  <div class="rev-met"><div class="rev-met-lbl">2031 forecast</div><div class="rev-met-val" id="m30">$26.7M</div><div class="rev-met-sub" id="m30-sub">272% growth</div></div>
+  <div class="rev-met"><div class="rev-met-lbl">CAGR 2025–31</div><div class="rev-met-val" id="mcagr">24%</div><div class="rev-met-sub">6-year</div></div>
+</div>
+
+<div class="chart-title">5Y Forecast with $10M Investment</div>
+<div class="rev-chart-wrap">
+  <canvas id="rc" role="img" aria-label="Stacked bar chart of Neuroelectrics Dx revenue by segment 2025 to 2031.">Revenue by segment 2022–2030.</canvas>
+</div>
+
+<div class="rev-legend-note">
+  <span>Darker fill = actuals (2022–2025)</span>
+  <span>Lighter fill = forecast (2026–2030)</span>
+  <span>Dashed line = total revenue (selected segments)</span>
+</div>
+
+<!-- Summary Table -->
+<div class="summary-wrap">
+  <table class="summary-table">
+    <thead>
+      <tr class="row-header">
+        <th>Total growth</th>
+        <th>2026</th>
+        <th>2027</th>
+        <th>2028</th>
+        <th>2029</th>
+        <th>2030</th>
+        <th>2031</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-growth">
+        <td><span class="seg-name">Growth</span></td>
+        <td id="tg-2026">—</td>
+        <td id="tg-2027">—</td>
+        <td id="tg-2028">—</td>
+        <td id="tg-2029">—</td>
+        <td id="tg-2030">—</td>
+        <td id="tg-2031">—</td>
+      </tr>
+      <tr class="row-seg-r">
+        <td>
+          <span class="seg-name" style="color:#BA7517;">Research</span>
+          <span class="seg-sub">selling since 2011</span>
+        </td>
+        <td id="r-2026">—</td>
+        <td id="r-2027">—</td>
+        <td id="r-2028">—</td>
+        <td id="r-2029">—</td>
+        <td id="r-2030">—</td>
+        <td id="r-2031">—</td>
+      </tr>
+      <tr class="row-seg-p">
+        <td>
+          <span class="seg-name" style="color:#378ADD;">Pharma</span>
+          <span class="seg-sub">passively engaged since 2022</span>
+        </td>
+        <td id="p-2026">—</td>
+        <td id="p-2027">—</td>
+        <td id="p-2028">—</td>
+        <td id="p-2029">—</td>
+        <td id="p-2030">—</td>
+        <td id="p-2031">—</td>
+      </tr>
+      <tr class="row-seg-c">
+        <td>
+          <span class="seg-name" style="color:#1D9E75;">EEG Clinical</span>
+          <span class="seg-sub">started to target since 2024</span>
+        </td>
+        <td id="c-2026">—</td>
+        <td id="c-2027">—</td>
+        <td id="c-2028">—</td>
+        <td id="c-2029">—</td>
+        <td id="c-2030">—</td>
+        <td id="c-2031">—</td>
+      </tr>
+      <tr class="row-total">
+        <td>BASE CASE</td>
+        <td id="tot-2026">—</td>
+        <td id="tot-2027">—</td>
+        <td id="tot-2028">—</td>
+        <td id="tot-2029">—</td>
+        <td id="tot-2030">—</td>
+        <td id="tot-2031">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var LABELS = ['2025','2026','2027','2028','2029','2030','2031'];
+var FORECAST_START = 1;
+
+var RAW = {
+  research: [4267, 4700, 4935, 5182, 5441, 5713, 5999],
+  clinical: [220,  1730, 3070, 5074, 7191, 11041,16669],
+  pharma:   [2680, 1400, 1000, 1000, 2000, 3000, 4000],
+};
+
+var TOTALS = LABELS.map(function(_,i) {
+  return RAW.research[i] + RAW.clinical[i] + RAW.pharma[i];
+});
+
+var COLORS = {
+  research: { solid: '#BA7517', light: '#EF9F27' },
+  clinical: { solid: '#1D9E75', light: '#5DCAA5' },
+  pharma:   { solid: '#378ADD', light: '#85B7EB' },
+};
+
+var state = { research: true, clinical: true, pharma: true, total: true, view: 'stacked' };
+
+var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+var axisCol  = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
+var gridCol  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+var totalCol = isDark ? 'rgba(255,255,255,0.8)' : '#003057';
+var dotCol   = isDark ? '#ffffff' : '#003057';
+var labelCol = isDark ? 'rgba(255,255,255,0.85)' : '#003057';
+
+function bgColors(seg) {
+  return LABELS.map(function(_, i) {
+    return i < FORECAST_START ? COLORS[seg].solid : COLORS[seg].light;
+  });
+}
+
+function getPctData(seg) {
+  return LABELS.map(function(_, i) {
+    var t = (state.research ? RAW.research[i] : 0)
+          + (state.clinical ? RAW.clinical[i] : 0)
+          + (state.pharma   ? RAW.pharma[i]   : 0);
+    return t === 0 ? 0 : Math.round(RAW[seg][i] / t * 100);
+  });
+}
+
+function buildDatasets() {
+  var isPct = state.view === 'pct';
+  var ds = [];
+  ['research', 'clinical', 'pharma'].forEach(function(seg) {
+    if (!state[seg]) return;
+    ds.push({
+      label: seg.charAt(0).toUpperCase() + seg.slice(1),
+      data: isPct ? getPctData(seg) : RAW[seg],
+      backgroundColor: bgColors(seg),
+      borderWidth: 0,
+      stack: state.view === 'grouped' ? seg : 'rev',
+      order: 1,
+    });
+  });
+  if (state.total && !isPct) {
+    var vis = ['research', 'clinical', 'pharma'].filter(function(s) { return state[s]; });
+    var lineTotals = LABELS.map(function(_, i) {
+      return vis.reduce(function(a, s) { return a + RAW[s][i]; }, 0);
+    });
+    ds.push({
+      label: 'Total',
+      data: lineTotals,
+      type: 'line',
+      borderColor: totalCol,
+      borderWidth: 2,
+      borderDash: [5, 3],
+      pointRadius: 5,
+      pointBackgroundColor: dotCol,
+      pointBorderColor: dotCol,
+      fill: false,
+      stack: undefined,
+      order: 0,
+      yAxisID: 'y',
+    });
+  }
+  return ds;
+}
+
+function yFormatter(v) {
+  if (state.view === 'pct') return v + '%';
+  if (v >= 1000) return '$' + Math.round(v / 1000) + 'M';
+  return '$' + v + 'K';
+}
+
+function tooltipLabel(ctx) {
+  var v = ctx.parsed.y;
+  if (state.view === 'pct') return ctx.dataset.label + ': ' + Math.round(v) + '%';
+  return ctx.dataset.label + ': $' + Math.round(v).toLocaleString() + 'K';
+}
+
+function tooltipFooter(items) {
+  if (state.view === 'pct') return '';
+  var i = items[0].dataIndex;
+  var vis = ['research', 'clinical', 'pharma'].filter(function(s) { return state[s]; });
+  var t = vis.reduce(function(a, s) { return a + RAW[s][i]; }, 0);
+  return 'Total: $' + Math.round(t).toLocaleString() + 'K';
+}
+
+// Plugin: draw $ labels above each total line point
+var totalLabelPlugin = {
+  id: 'totalLabels',
+  afterDatasetsDraw: function(chart) {
+    if (state.view === 'pct' || !state.total) return;
+    var datasets = chart.data.datasets;
+    var totalDsIdx = -1;
+    datasets.forEach(function(ds, i) { if (ds.label === 'Total') totalDsIdx = i; });
+    if (totalDsIdx === -1) return;
+    var meta = chart.getDatasetMeta(totalDsIdx);
+    if (!meta || !meta.data) return;
+    var ctx = chart.ctx;
+    ctx.save();
+    ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillStyle = labelCol;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    var ds = datasets[totalDsIdx];
+    meta.data.forEach(function(point, i) {
+      var val = ds.data[i];
+      if (val == null) return;
+      var label = val >= 1000 ? '$' + (val / 1000).toFixed(1) + 'M' : '$' + Math.round(val) + 'K';
+      ctx.fillText(label, point.x, point.y - 7);
+    });
+    ctx.restore();
+  }
+};
+
+var chart = new Chart(document.getElementById('rc'), {
+  type: 'bar',
+  data: { labels: LABELS, datasets: buildDatasets() },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 280 },
+    layout: { padding: { top: 30 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: tooltipLabel, footer: tooltipFooter } }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        grid: { color: gridCol },
+        ticks: { color: axisCol, font: { size: 12 }, autoSkip: false, maxRotation: 0 },
+        border: { color: gridCol }
+      },
+      y: {
+        stacked: true,
+        grid: { color: gridCol },
+        border: { color: gridCol },
+        ticks: { color: axisCol, font: { size: 12 }, callback: yFormatter },
+        title: { display: true, text: '000 USD', color: axisCol, font: { size: 11 } }
+      }
+    }
+  },
+  plugins: [totalLabelPlugin]
+});
+
+function fmtCell(v) {
+  return '$ ' + Math.round(v).toLocaleString();
+}
+
+function updateTable() {
+  var years   = [2026, 2027, 2028, 2029, 2030, 2031];
+  var idxMap  = { 2026:1, 2027:2, 2028:3, 2029:4, 2030:5, 2031:6 };
+  var prev    = TOTALS[0]; // 2025 base
+
+  years.forEach(function(yr) {
+    var i   = idxMap[yr];
+    var tot = TOTALS[i];
+    var g   = Math.round((tot - prev) / prev * 100);
+    prev    = tot;
+
+    document.getElementById('tg-'  + yr).textContent = g + '%';
+    document.getElementById('r-'   + yr).textContent = fmtCell(RAW.research[i]);
+    document.getElementById('p-'   + yr).textContent = fmtCell(RAW.pharma[i]);
+    document.getElementById('c-'   + yr).textContent = fmtCell(RAW.clinical[i]);
+    document.getElementById('tot-' + yr).textContent = fmtCell(tot);
+  });
+}
+
+function updateMetrics() {
+  var vis   = ['research', 'clinical', 'pharma'].filter(function(s) { return state[s]; });
+  var v2025 = vis.reduce(function(a, s) { return a + RAW[s][3]; }, 0);
+  var v2030 = vis.reduce(function(a, s) { return a + RAW[s][6]; }, 0);
+  var cagr  = v2025 > 0 ? Math.round((Math.pow(v2030 / v2025, 1/6) - 1) * 100) : 0;
+  document.getElementById('m25').textContent  = '$' + (v2025 / 1000).toFixed(1) + 'M';
+  document.getElementById('m30').textContent  = '$' + (v2030 / 1000).toFixed(1) + 'M';
+  document.getElementById('m30-sub').textContent = v2025 > 0
+    ? Math.round((v2030 - v2025) / v2025 * 100) + '% growth' : '—';
+  document.getElementById('mcagr').textContent = cagr + '%';
+}
+
+function refresh() {
+  chart.data.datasets = buildDatasets();
+  var isGrouped = state.view === 'grouped';
+  var isPct     = state.view === 'pct';
+  chart.options.scales.x.stacked = !isGrouped;
+  chart.options.scales.y.stacked = !isGrouped;
+  chart.options.scales.y.max     = isPct ? 100 : undefined;
+  chart.options.scales.y.title.text = isPct ? '% of total' : '000 USD';
+  chart.update();
+  updateMetrics();
+}
+
+function toggleSeg(seg) {
+  state[seg] = !state[seg];
+  document.getElementById('tog-' + seg).classList.toggle('off', !state[seg]);
+  refresh();
+}
+
+function setView(v) {
+  state.view = v;
+  ['stacked', 'grouped', 'pct'].forEach(function(x) {
+    document.getElementById('vbtn-' + x).classList.toggle('active', x === v);
+  });
+  var tt = document.getElementById('tog-total');
+  tt.style.opacity       = v === 'pct' ? '0.3' : '1';
+  tt.style.pointerEvents = v === 'pct' ? 'none' : 'auto';
+  refresh();
+}
+
+updateMetrics();
+updateTable();
+</script>
+
+
+
+
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- INVESTMENT MODEL -->
@@ -899,5 +1348,6 @@ function calc() {
 calc();
 // investment model initial render handled inside calc() via sync call
 </script>
+
 </body>
 </html>
