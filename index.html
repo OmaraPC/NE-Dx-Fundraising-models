@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuroelectrics Dx — Salesforce Sizing Model v3</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; background: #f8f8f6; color: #1a1a1a;
+    padding: 2rem; line-height: 1.6; overflow-x: hidden;
+  }
+  h1 { font-size: 20px; font-weight: 500; color: #003057; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
+
+  .fx-row {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 1.5rem; background: #efefed;
+    border-radius: 8px; padding: 12px 16px; flex-wrap: wrap;
+  }
+  .fx-lbl { font-size: 13px; color: #666; }
+  .fx-val { font-size: 16px; font-weight: 500; min-width: 42px; color: #1a1a1a; }
+
+  input[type=range] {
+    -webkit-appearance: none; height: 4px; border-radius: 2px;
+    background: #ccc; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    border-radius: 50%; background: #003057; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #003057; border: none; cursor: pointer;
+  }
+
+  .seg-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .seg-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: 1fr 1fr; } }
+
+  .seg-card {
+    border-radius: 12px; border: 0.5px solid #ddd;
+    padding: 14px 16px; background: #fff;
+  }
+  .seg-card-pharma { border-color: #b5d4f4; }
+  .seg-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; background: #dceefb; color: #0C447C; }
+
+  .ctrl-row { margin-bottom: 10px; }
+  .ctrl-lbl { font-size: 11px; color: #888; margin-bottom: 3px; display: flex; justify-content: space-between; }
+  .ctrl-lbl span { font-weight: 500; color: #1a1a1a; }
+
+  .prod-line {
+    margin-top: 10px; font-size: 11px; color: #aaa;
+    border-top: 0.5px solid #eee; padding-top: 8px; line-height: 1.7;
+  }
+  .prod-line strong { color: #666; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: #efefed; border-radius: 8px; padding: 10px 14px; }
+  .mlbl { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .mval { font-size: 22px; font-weight: 500; color: #1a1a1a; }
+  .msub { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  .table-wrap {
+    border: 0.5px solid #ddd; border-radius: 12px;
+    overflow-x: auto; margin-bottom: 1rem; width: 100%;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
+  th {
+    padding: 8px 8px; font-size: 11px; font-weight: 500; color: #888;
+    background: #f5f5f3; border-bottom: 0.5px solid #e8e8e8;
+    text-align: center; white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 7px 8px; border-bottom: 0.5px solid #f0f0f0;
+    text-align: center; color: #1a1a1a; font-variant-numeric: tabular-nums;
+  }
+  td:first-child { text-align: left; font-weight: 500; }
+  tr:last-child td { border-bottom: none; background: #f5f5f3; font-weight: 500; }
+
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .b-r { background: #faeeda; color: #633806; }
+  .b-c { background: #d4f0e5; color: #085041; }
+  .b-p { background: #dceefb; color: #0C447C; }
+  .b-t { background: #e8e8e6; color: #003057; }
+  .footer {
+    margin-top: 2rem; font-size: 11px; color: #bbb;
+    padding-top: 0.5rem;
+    clear: both; display: block; width: 100%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e8e8e8; }
+    h1 { color: #8bb8d8; }
+    .subtitle, .fx-lbl, .mlbl, .msub, .footer { color: #888; }
+    .fx-row, .metric { background: #2a2a2a; }
+    .fx-val, .mval { color: #e8e8e8; }
+    .seg-card { background: #242424; border-color: #3a3a3a; }
+    .seg-card-pharma { border-color: #0C447C; }
+    .ctrl-lbl { color: #888; }
+    .ctrl-lbl span { color: #e8e8e8; }
+    .prod-line { color: #666; border-top-color: #333; }
+    .prod-line strong { color: #aaa; }
+    .table-wrap { border-color: #333; }
+    table { color: #e8e8e8; }
+    th { background: #2a2a2a; color: #888; border-bottom-color: #333; }
+    td { border-bottom-color: #2a2a2a; color: #e8e8e8; }
+    tr:last-child td { background: #252525; }
+    .footer { border-top-color: #333; }
+    input[type=range] { background: #444; }
+    input[type=range]::-webkit-slider-thumb { background: #8bb8d8; }
+    input[type=range]::-moz-range-thumb { background: #8bb8d8; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- INVESTMENT MODEL -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div style="border-top: 2px solid #003057; margin: 2.5rem 0 2rem; padding-top: 2rem;">
+  <h2 style="font-size:18px; font-weight:500; color:#003057; margin-bottom:4px;">Neuroelectrics Dx — Investment Required Model</h2>
+  <p style="font-size:13px; color:#888; margin-bottom:1.5rem;">Incremental resources only</p>
+
+  <!-- ── USE OF PROCEEDS ── -->
+  <h3 style="font-size:15px; font-weight:500; color:#003057; margin-bottom:1rem; padding-top:0.5rem;">Use of Proceeds</h3>
+
+  <!-- Top row: Yr1 / Yr2 / Total -->
+  <div style="display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:10px; margin-bottom:12px;">
+    <div style="background:#f5f5f3; border-radius:8px; padding:14px 16px;">
+      <div style="font-size:11px; color:#888; margin-bottom:4px;">Year 1 — Build</div>
+      <div style="font-size:24px; font-weight:500; color:#003057;" id="inv-yr1">—</div>
+      <div style="font-size:11px; color:#aaa; margin-top:2px;">Q2 start assumed</div>
+    </div>
+    <div style="background:#f5f5f3; border-radius:8px; padding:14px 16px;">
+      <div style="font-size:11px; color:#888; margin-bottom:4px;">Year 2 — Scale</div>
+      <div style="font-size:24px; font-weight:500; color:#003057;" id="inv-yr2">—</div>
+      <div style="font-size:11px; color:#aaa; margin-top:2px;">self-fund from yr 3</div>
+    </div>
+    <div style="background:#003057; border-radius:8px; padding:14px 16px;">
+      <div style="font-size:11px; color:#ACCACD; margin-bottom:4px;">Total Raise (Yr 1 + Yr 2)</div>
+      <div style="font-size:28px; font-weight:600; color:#fff;" id="inv-total">—</div>
+      <div style="font-size:11px; color:#ACCACD; margin-top:2px;">recommended raise size</div>
+    </div>
+  </div>
+
+  <!-- Allocation breakdown — vertical bars in Petrichor style -->
+  <div id="uop-blocks" style="margin-bottom:1.5rem;"></div>
+
+  <!-- Detailed table -->
+  <div style="border:0.5px solid #ddd; border-radius:10px; overflow-x:auto; margin-bottom:1rem;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px; min-width:600px;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">Block</th>
+          <th style="text-align:center; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">FTEs</th>
+          <th style="text-align:right; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">Year 1 ($K)</th>
+          <th style="text-align:right; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">% of Yr1</th>
+          <th style="text-align:right; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">Year 2 ($K)</th>
+          <th style="text-align:right; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">% of Yr2</th>
+          <th style="text-align:right; padding:8px 10px; background:#f5f5f3; border-bottom:0.5px solid #e8e8e8; font-size:11px; color:#888; font-weight:500;">Total raise ($K)</th>
+        </tr>
+      </thead>
+      <tbody id="inv-tbody"></tbody>
+    </table>
+  </div>
+
+  <div style="font-size:11px; color:#bbb; padding-top:0.5rem;">
+    USD/EUR rate same as salesforce model above &nbsp;·&nbsp; Incremental headcount only &nbsp;·&nbsp; Platform &amp; Technology Innovation is fixed from year 1 &nbsp;·&nbsp; Operational Excellence and Commercial Expansion scale at +20% yr 2, +10%/yr thereafter &nbsp;·&nbsp; Year 1 = 75% of annual (Q2 start) &nbsp;·&nbsp; Year 2 = 100% + scaling &nbsp;·&nbsp; Business expected to self-fund from year 3.
+  </div>
+
+
+
+  <div style="border-top:0.5px solid #e0e0e0; margin:1.5rem 0; padding-top:1.5rem;">
+    <p style="font-size:12px; color:#003057; font-style:italic; margin-bottom:1.5rem;">Adjust inputs below to update the model</p>
+  </div>
+
+    <!-- ── TIER COMP REFERENCE ── -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.5rem;">
+    <div style="background:#fff; border:0.5px solid #ddd; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:11px; font-weight:500; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:.05em;">Tier 1 — Technical ICs (ENG, FW, HW, SYS, EL, SW, RA1/2, QA1)</div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <label style="font-size:12px; color:#555;">Base comp (EUR K)</label>
+        <input type="range" min="40" max="80" step="5" value="60" id="t1-comp" style="width:140px;">
+        <span style="font-size:16px; font-weight:500; color:#003057;" id="t1-comp-out">€55K</span>
+        <span style="font-size:11px; color:#aaa;" id="t1-fl-out">→ $79K fully-loaded</span>
+      </div>
+    </div>
+    <div style="background:#fff; border:0.5px solid #ddd; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:11px; font-weight:500; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:.05em;">Tier 2 — Managers / Directors / Senior Leads</div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <label style="font-size:12px; color:#555;">Base comp (EUR K)</label>
+        <input type="range" min="60" max="130" step="5" value="95" id="t2-comp" style="width:140px;">
+        <span style="font-size:16px; font-weight:500; color:#003057;" id="t2-comp-out">€90K</span>
+        <span style="font-size:11px; color:#aaa;" id="t2-fl-out">→ $114K fully-loaded</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AREA CARDS ── -->
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:1.5rem;" id="area-grid">
+
+    <!-- BLOCK 1: PLATFORM & TECHNOLOGY INNOVATION -->
+    <div style="background:#fff; border:0.5px solid #ddd; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:13px; font-weight:500; color:#003057; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+        <span style="width:9px;height:9px;border-radius:2px;background:#378ADD;display:inline-block;"></span>Platform &amp; Technology Innovation
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-bottom:10px;">PD/ENG — upfront, mostly fixed</div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Tier 1 FTEs (ENG/SW/HW/FW/SYS/EL) <span id="pi-t1-out">7</span></div>
+        <input type="range" min="0" max="15" step="1" value="7" id="pi-t1">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Tier 2 FTEs (Mgrs/Directors/PMO) <span id="pi-t2-out">2</span></div>
+        <input type="range" min="0" max="10" step="1" value="2" id="pi-t2">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">NREs ($K/yr) <span id="pi-nre-out">$200K</span></div>
+        <input type="range" min="0" max="500" step="25" value="200" id="pi-nre">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Outsourcing ($K/yr) <span id="pi-out-out">$250K</span></div>
+        <input type="range" min="0" max="600" step="25" value="250" id="pi-out">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Consulting — BM/EEG/MD ($K/yr) <span id="pi-cons-out">$400K</span></div>
+        <input type="range" min="0" max="1000" step="25" value="400" id="pi-cons">
+      </div>
+      <div style="margin-top:10px; padding-top:8px; border-top:0.5px solid #eee; font-size:11px; color:#aaa;">
+        Year 1 annual cost: <strong id="pi-total" style="color:#378ADD;">—</strong>
+      </div>
+    </div>
+
+    <!-- BLOCK 2: OPERATIONAL EXCELLENCE -->
+    <div style="background:#fff; border:0.5px solid #ddd; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:13px; font-weight:500; color:#003057; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+        <span style="width:9px;height:9px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>Operational Excellence
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-bottom:10px;">RAQA · CS Excellence · G&amp;A — scales with revenue</div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Tier 1 FTEs (RAQA/EEG experts/AI leads/CS Excellence/Branding) <span id="ops-t1-out">5</span></div>
+        <input type="range" min="0" max="20" step="1" value="5" id="ops-t1">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Tier 2 FTEs (Neurologist/Consultants/Mgrs/Directors) <span id="ops-t2-out">5</span></div>
+        <input type="range" min="0" max="15" step="1" value="5" id="ops-t2">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">NREs / tools ($K/yr) <span id="ops-nre-out">$50K</span></div>
+        <input type="range" min="0" max="500" step="25" value="50" id="ops-nre">
+      </div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Other ops &amp; G&amp;A ($K/yr) <span id="ops-ga-out">$75K</span></div>
+        <input type="range" min="0" max="800" step="25" value="75" id="ops-ga">
+      </div>
+      <div style="margin-top:10px; padding-top:8px; border-top:0.5px solid #eee; margin-bottom:8px; font-size:11px; color:#888; font-weight:500; letter-spacing:.03em;">AI &amp; Scale Efficiency</div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">AI efficiency gain (%/yr from 2027) <span id="ops-ai-out">10%</span></div>
+        <input type="range" min="0" max="30" step="1" value="10" id="ops-ai">
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-top:2px; margin-bottom:8px;">As AI automates EEG interpretation &amp; reporting, cost per clinical transaction falls. Applies from 2027 onwards.</div>
+      <div style="margin-top:10px; padding-top:8px; border-top:0.5px solid #eee; font-size:11px; color:#aaa;">
+        Year 1 annual cost: <strong id="ops-total" style="color:#1D9E75;">—</strong><br>
+        Ops cost as % of clinical revenue: <strong id="ops-pct" style="color:#1D9E75;">—</strong> yr1 → <strong id="ops-pct-5" style="color:#1D9E75;">—</strong> yr5
+      </div>
+    </div>
+
+    <!-- BLOCK 3: COMMERCIAL EXPANSION -->
+    <div style="background:#fff; border:0.5px solid #ddd; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:13px; font-weight:500; color:#003057; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+        <span style="width:9px;height:9px;border-radius:2px;background:#854F0B;display:inline-block;"></span>Commercial Expansion
+      </div>
+      <div style="font-size:11px; color:#aaa; margin-bottom:10px;">Salesforce + commercial enablement</div>
+      <div class="inv-ctrl">
+        <div class="inv-lbl">Commercial enablement ($K/person/yr) <span id="ce-out">$50K</span></div>
+        <input type="range" min="10" max="100" step="5" value="50" id="ce">
+      </div>
+      <div style="font-size:11px; color:#888; margin:6px 0 0; font-style:italic;">Per rep · covers T&amp;E, conferences, collateral &amp; commercial tools · scales with salesforce headcount</div>
+      <div style="margin-top:10px; padding-top:8px; border-top:0.5px solid #eee; font-size:11px; color:#aaa;">
+        Year 1 salesforce cost (2026 new hires × annual comp): <strong id="sf-display" style="color:#907DA6;">—</strong><br>
+        Year 1 annual cost (incl. salesforce + enablement): <strong id="comm-total" style="color:#907DA6;">—</strong>
+      </div>
+    </div>
+
+  </div><!-- /area-grid --></div>
+
+<h1>Neuroelectrics Dx — Salesforce Sizing Model</h1>
+<p class="subtitle">Research · Clinical · Pharma &nbsp;·&nbsp; Confidential</p>
+
+<div class="summary-grid" style="grid-template-columns:repeat(5,1fr); margin-bottom:1.5rem;">
+  <div class="metric"><div class="mlbl">Existing headcount</div><div class="mval" id="s-yr1" style="color:#003057;">5</div><div class="msub">today</div></div>
+  <div class="metric"><div class="mlbl">Total headcount 2031</div><div class="mval" id="s-total" style="color:#003057;">—</div><div class="msub">all segments</div></div>
+  <div class="metric"><div class="mlbl">Research reps</div><div class="mval" id="s-r" style="color:#854F0B;">—</div><div class="msub">incremental by 2031</div></div>
+  <div class="metric"><div class="mlbl">Clinical reps</div><div class="mval" id="s-c" style="color:#0F6E56;">—</div><div class="msub">incremental by 2031</div></div>
+  <div class="metric"><div class="mlbl">Pharma BD</div><div class="mval" id="s-p" style="color:#185FA5;">—</div><div class="msub">incremental by 2031</div></div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>R target</th><th>+R reps</th><th>Cum R</th>
+        <th>C target</th><th>+C reps</th><th>Cum C</th><th style="color:#185FA5; white-space:nowrap;">IB rev ↩</th>
+        <th>P target</th><th>BD team</th><th>P exp. rev</th>
+        <th>Total modelled</th><th>Plan total</th><th>Total headcount</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  Revenue targets from internal Revenue by Segment model &nbsp;·&nbsp; Total headcount includes existing reps + new hires &nbsp;·&nbsp; All costs fully-loaded USD (base salary + 30% employer social security, benefits &amp; taxes).
+</div>
+
+
+<div style="border-top:0.5px solid #e0e0e0; margin:1.5rem 0; padding-top:1.5rem;">
+  <p style="font-size:12px; color:#003057; font-style:italic; margin-bottom:1.5rem;">Adjust inputs below to update the model</p>
+</div>
+
+<div class="fx-row">
+  <div class="fx-lbl">USD / EUR rate</div>
+  <input type="range" min="1.00" max="1.25" step="0.01" value="1.10" id="fx" style="width:120px;">
+  <div class="fx-val" id="fx-out">1.10</div>
+  <div class="fx-lbl" style="margin-left:20px;">Year 1 ramp (clinical / research)</div>
+  <input type="range" min="0.25" max="0.75" step="0.05" value="0.50" id="ramp" style="width:120px;">
+  <div class="fx-val" id="ramp-out">50%</div>
+</div>
+
+<div class="seg-grid">
+
+  <div class="seg-card">
+    <div class="seg-title"><span class="dot" style="background:#BA7517;"></span>Research</div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Total comp (EUR K) <span id="r-comp-out">€120K</span></div>
+      <input type="range" min="60" max="200" step="10" value="120" id="r-comp" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Legacy multiple (existing 3 reps) <span id="r-mult-out">13×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="13" id="r-mult" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">New hire multiple 2027–2028 <span id="r-new-mult-out">11×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="11" id="r-new-mult" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">New hire multiple 2029–2031 <span id="r-new-mult2-out">8×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="8" id="r-new-mult2" style="width:100%;">
+    </div>
+    <div class="prod-line">
+      Legacy prod/rep: <strong id="r-prod">—</strong> &nbsp;·&nbsp; Yr 1: <strong id="r-prod1">—</strong><br>
+      New hire 2027–28: <strong id="r-new-prod">—</strong> &nbsp;·&nbsp; New hire 2029+: <strong id="r-new-prod2">—</strong><br>
+      2026 frozen — existing 3 reps cover target. New hires from 2027.
+    </div>
+  </div>
+
+  <div class="seg-card">
+    <div class="seg-title"><span class="dot" style="background:#1D9E75;"></span>Clinical</div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Total comp (EUR K) <span id="c-comp-out">€130K</span></div>
+      <input type="range" min="80" max="250" step="10" value="130" id="c-comp" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">New hire multiple 2026–2027 <span id="c-mult-out">6×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="6" id="c-mult" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">New hire multiple 2028–2029 <span id="c-mult2-out">5×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="5" id="c-mult2" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">New hire multiple 2030–2031 <span id="c-mult3-out">4×</span></div>
+      <input type="range" min="1" max="20" step="0.5" value="4" id="c-mult3" style="width:100%;">
+    </div>
+    <div class="prod-line">
+      Prod/rep (25% yr1 ramp): <strong id="c-prod">—</strong> &nbsp;·&nbsp; Yr 1: <strong id="c-prod1">—</strong><br>
+      2028–29 prod: <strong id="c-prod2">—</strong> &nbsp;·&nbsp; 2030–31 prod: <strong id="c-prod3">—</strong><br>
+      Existing 2 reps in baseline. 25% yr1 ramp — 6–18mo procurement cycles.
+    </div>
+    <div style="margin-top:10px; padding-top:8px; border-top:0.5px solid #eee; font-size:11px; color:#888; font-weight:500; letter-spacing:.03em;">Installed Base Renewal</div>
+    <div class="ctrl-row" style="margin-top:6px;">
+      <div class="ctrl-lbl">Avg device price ($K) <span id="ib-price-out">$18K</span></div>
+      <input type="range" min="10" max="30" step="1" value="18" id="ib-price" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Replacement cycle (years) <span id="ib-cycle-out">5 yrs</span></div>
+      <input type="range" min="2" max="7" step="1" value="5" id="ib-cycle" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Renewal rate (% of installed base) <span id="ib-rate-out">70%</span></div>
+      <input type="range" min="30" max="100" step="5" value="70" id="ib-rate" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Services rev / device / yr ($K) <span id="ib-svc-out">$3K</span></div>
+      <input type="range" min="0" max="8" step="0.5" value="3" id="ib-svc" style="width:100%;">
+    </div>
+    <div style="font-size:11px; color:#aaa; margin-top:4px;">
+      Installed base renewal: <strong id="ib-summary">—</strong>
+    </div>
+  </div>
+
+  <div class="seg-card seg-card-pharma">
+    <div class="seg-title">
+      <span class="dot" style="background:#378ADD;"></span>Pharma
+      <span class="tag">fixed BD model</span>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">BD person comp (EUR K) <span id="p-comp-out">€130K</span></div>
+      <input type="range" min="80" max="250" step="10" value="130" id="p-comp" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Deal cycle (months) <span id="p-cycle-out">15 mo</span></div>
+      <input type="range" min="6" max="24" step="1" value="15" id="p-cycle" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Avg deal size ($K) <span id="p-deal-out">$1,500K</span></div>
+      <input type="range" min="500" max="5000" step="100" value="1500" id="p-deal" style="width:100%;">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-lbl">Close rate <span id="p-close-out">40%</span></div>
+      <input type="range" min="10" max="80" step="5" value="40" id="p-close" style="width:100%;">
+    </div>
+    <div class="prod-line">
+      Deals closed/yr: <strong id="p-deals-yr">—</strong><br>
+      Expected rev/BD/yr: <strong id="p-rev-bd">—</strong><br>
+      Targets: $1.4M → $4.0M &nbsp;·&nbsp; lumpy / deal-driven
+    </div>
+  </div>
+
+
+
+</div>
+
+
+<style>
+.inv-ctrl { margin-bottom:10px; }
+.inv-lbl { font-size:11px; color:#888; margin-bottom:3px; display:flex; justify-content:space-between; }
+.inv-lbl span { font-weight:500; color:#1a1a1a; }
+</style>
+
+<script>
+// ── INVESTMENT MODEL ──────────────────────────────────────────
+function fmtK(n){ return '$'+Math.round(n).toLocaleString()+'K'; }
+function fmtM(n){ return '$'+(n/1000).toFixed(1)+'M'; }
+
+// Clinical revenue reference points for ops efficiency display
+var SEG_C_YR1 = 1730;   // 2026 clinical target
+var SEG_C_YR5 = 16669;  // 2031 clinical target
+
+function calcInvestment() {
+  var fx  = parseFloat(document.getElementById('fx').value) || 1.10;
+  var fl  = 1.30;
+
+  var t1  = parseFloat(document.getElementById('t1-comp').value);
+  var t2  = parseFloat(document.getElementById('t2-comp').value);
+  var t1fl = t1 * fx * fl;
+  var t2fl = t2 * fx * fl;
+
+  document.getElementById('t1-comp-out').textContent = '€'+t1+'K';
+  document.getElementById('t2-comp-out').textContent = '€'+t2+'K';
+  document.getElementById('t1-fl-out').textContent   = '→ $'+Math.round(t1fl)+'K fully-loaded';
+  document.getElementById('t2-fl-out').textContent   = '→ $'+Math.round(t2fl)+'K fully-loaded';
+
+  // ── Block 1: Platform & Technology Innovation
+  var piT1  = parseInt(document.getElementById('pi-t1').value);
+  var piT2  = parseInt(document.getElementById('pi-t2').value);
+  var piNre = parseFloat(document.getElementById('pi-nre').value);
+  var piOut = parseFloat(document.getElementById('pi-out').value);
+  var piCon = parseFloat(document.getElementById('pi-cons').value);
+  document.getElementById('pi-t1-out').textContent   = piT1;
+  document.getElementById('pi-t2-out').textContent   = piT2;
+  document.getElementById('pi-nre-out').textContent  = '$'+piNre+'K';
+  document.getElementById('pi-out-out').textContent  = '$'+piOut+'K';
+  document.getElementById('pi-cons-out').textContent = '$'+Math.round(piCon)+'K';
+  var piAnnual = piT1*t1fl + piT2*t2fl + piNre + piOut + piCon;
+  document.getElementById('pi-total').textContent = fmtK(piAnnual);
+
+  // ── Block 2: Operational Excellence
+  var opsT1  = parseInt(document.getElementById('ops-t1').value);
+  var opsT2  = parseInt(document.getElementById('ops-t2').value);
+  var opsNre = parseFloat(document.getElementById('ops-nre').value);
+  var opsGa  = parseFloat(document.getElementById('ops-ga').value);
+  document.getElementById('ops-t1-out').textContent  = opsT1;
+  document.getElementById('ops-t2-out').textContent  = opsT2;
+  document.getElementById('ops-nre-out').textContent = '$'+opsNre+'K';
+  document.getElementById('ops-ga-out').textContent  = '$'+opsGa+'K';
+  var opsAnnual = opsT1*t1fl + opsT2*t2fl + opsNre + opsGa;
+  var opsAiGain = parseFloat(document.getElementById('ops-ai').value)/100;
+  document.getElementById('ops-ai-out').textContent = Math.round(opsAiGain*100)+'%';
+  document.getElementById('ops-total').textContent = fmtK(opsAnnual);
+
+  // Ops cost as % of clinical revenue — yr1 vs yr5 (with AI efficiency compounding)
+  var clinRev1 = SEG_C_YR1 || 1730;  // 2026 clinical target
+  var clinRev5 = SEG_C_YR5 || 16669; // 2031 clinical target
+  var opsYr5WithAI = opsAnnual * Math.pow(1 - opsAiGain, 4); // 4 years of AI gains from 2027
+  var opsPct1 = Math.round(opsAnnual / clinRev1 * 100);
+  var opsPct5 = Math.round(opsYr5WithAI / clinRev5 * 100);
+  document.getElementById('ops-pct').textContent   = opsPct1+'%';
+  document.getElementById('ops-pct-5').textContent = opsPct5+'%';
+
+  // ── Block 3: Commercial Expansion
+  var cePerPerson = parseFloat(document.getElementById('ce').value);
+  document.getElementById('ce-out').textContent = '$'+cePerPerson+'K';
+
+  // ── Salesforce cost — INCREMENTAL, YEAR 1 NEW HIRES ONLY
+  // Read directly from first data row of the salesforce table (2026 row)
+  var rCompFL = parseFloat(document.getElementById('r-comp').value) * fx * fl;
+  var cCompFL = parseFloat(document.getElementById('c-comp').value) * fx * fl;
+  var pCompFL = parseFloat(document.getElementById('p-comp').value) * fx * fl;
+
+  // Parse 2026 row from the salesforce table — +R reps and +C reps columns
+  var sfRows = document.getElementById('tbody').querySelectorAll('tr');
+  var yr1NewR = 0, yr1NewC = 0;
+  if(sfRows.length > 0) {
+    // +R reps is col index 2, +C reps is col index 5
+    var cells = sfRows[0].querySelectorAll('td');
+    if(cells.length > 5) {
+      yr1NewR = parseInt(cells[2].textContent.replace(/[^0-9]/g,'')) || 0;
+      yr1NewC = parseInt(cells[5].textContent.replace(/[^0-9]/g,'')) || 0;
+    }
+  }
+  var yr1NewP = 1; // First BD hire always in year 1
+
+  // Annual cost = year 1 new hires × fully-loaded annual comp
+  var sfAnnual = yr1NewR*rCompFL + yr1NewC*cCompFL + yr1NewP*pCompFL;
+  var sfTotalR = yr1NewR; var sfTotalC = yr1NewC; var sfTotalP = yr1NewP;
+
+  // Enablement scales with total salesforce headcount (existing + new)
+  var sfYr1TotalReps = (3 + yr1NewR) + (2 + yr1NewC) + yr1NewP;
+  var ceYr1 = cePerPerson * sfYr1TotalReps;
+  var commAnnual = ceYr1 + sfAnnual;
+  document.getElementById('sf-display').textContent = fmtK(sfAnnual);
+  document.getElementById('comm-total').textContent = fmtK(commAnnual);
+
+  // Year 2: use 2027 new hires from second table row
+  var yr2NewR = 0, yr2NewC = 0;
+  if(sfRows.length > 1) {
+    var cells2 = sfRows[1].querySelectorAll('td');
+    if(cells2.length > 5) {
+      yr2NewR = parseInt(cells2[2].textContent.replace(/[^0-9]/g,'')) || 0;
+      yr2NewC = parseInt(cells2[5].textContent.replace(/[^0-9]/g,'')) || 0;
+    }
+  }
+  var sfYr2TotalReps = (3 + yr1NewR + yr2NewR) + (2 + yr1NewC + yr2NewC) + (yr1NewP + 1);
+  var ceYr2 = cePerPerson * sfYr2TotalReps;
+  var sfAnnualYr2 = (yr1NewR+yr2NewR)*rCompFL + (yr1NewC+yr2NewC)*cCompFL + (yr1NewP+1)*pCompFL;
+  var commAnnualYr2 = ceYr2 + sfAnnualYr2;
+
+  // ── Year multipliers
+  var piYr1   = piAnnual   * 0.75;
+  var piYr2   = piAnnual   * 1.00;
+  var pi5yr   = piAnnual   * (0.75 + 1.0 + 1.0 + 1.0 + 1.0);
+
+  var opsYr1  = opsAnnual  * 0.75;
+  var opsYr2  = opsAnnual  * 1.20 * (1 - opsAiGain);
+  var ops5yr  = opsAnnual  * (0.75
+              + 1.20 * Math.pow(1-opsAiGain, 0)
+              + 1.30 * Math.pow(1-opsAiGain, 1)
+              + 1.40 * Math.pow(1-opsAiGain, 2)
+              + 1.50 * Math.pow(1-opsAiGain, 3));
+
+  var commYr1 = commAnnual    * 0.75;  // yr1 hires, Q2 start = 75%
+  var commYr2 = commAnnualYr2 * 1.00;  // yr1 full year + yr2 new hires
+  var comm5yr = commYr1 + commYr2 + commAnnualYr2 * 1.0 + commAnnualYr2 * 1.0 + commAnnualYr2 * 1.0;
+
+  // ── Build summary table
+  var tbody = document.getElementById('inv-tbody');
+  tbody.innerHTML = '';
+
+  var rows = [
+    { label:'Platform & Technology Innovation',      color:'#378ADD', ftes: piT1+piT2,                       annual:piAnnual,   yr1:piYr1,   yr2:piYr2,   total5:pi5yr   },
+    { label:'Operational Excellence',                color:'#1D9E75', ftes: opsT1+opsT2,                     annual:opsAnnual,  yr1:opsYr1,  yr2:opsYr2,  total5:ops5yr  },
+    { label:'Commercial Expansion', color:'#907DA6', ftes: sfTotalR+sfTotalC+sfTotalP,    annual:commAnnual, yr1:commYr1, yr2:commYr2, total5:comm5yr },
+  ];
+
+  var totYr1=0, totYr2=0, totFTE=0;
+  rows.forEach(function(row){ totYr1+=row.yr1; totYr2+=row.yr2; totFTE+=row.ftes; });
+  var totRaise = totYr1 + totYr2;
+
+  // ── Petrichor-style allocation blocks — exact brand colors from format.xlsx
+  var uopBlocks = document.getElementById('uop-blocks');
+  uopBlocks.innerHTML = '';
+  var blockBg    = ['#8599AB','#9AC1CC','#907DA6'];
+  var blockLight = ['rgba(255,255,255,0.7)','rgba(255,255,255,0.7)','rgba(255,255,255,0.7)'];
+  rows.forEach(function(row, ri) {
+    var pct = totRaise > 0 ? Math.round((row.yr1+row.yr2)/totRaise*100) : 0;
+    var div = document.createElement('div');
+    div.style.cssText = [
+      'background:'+blockBg[ri],
+      'border-radius:6px',
+      'padding:14px 20px',
+      'display:flex',
+      'align-items:center',
+      'justify-content:space-between',
+      'margin-bottom:6px',
+      'gap:12px'
+    ].join(';');
+    div.innerHTML =
+      '<div style="font-size:22px;font-weight:600;color:#fff;white-space:nowrap;min-width:80px;">'+fmtM(row.yr1+row.yr2)+'</div>'+
+      '<div style="flex:1;font-size:12px;font-weight:500;color:rgba(255,255,255,0.9);">'+row.label+'</div>'+
+      '<div style="font-size:11px;color:rgba(255,255,255,0.6);white-space:nowrap;">Yr 1: '+fmtK(row.yr1)+'&nbsp;&nbsp;Yr 2: '+fmtK(row.yr2)+'</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,0.18);border-radius:6px;padding:8px 18px;text-align:center;white-space:nowrap;min-width:72px;">'+
+        '<span style="font-size:22px;font-weight:700;color:#fff;line-height:1.1;">'+pct+'%</span>'+
+        '<span style="font-size:10px;color:rgba(255,255,255,0.65);">of raise</span>'+
+      '</div>';
+    uopBlocks.appendChild(div);
+  });
+
+  // ── Detail table
+  var tbody = document.getElementById('inv-tbody');
+  tbody.innerHTML = '';
+  var tableColors = ['#8599AB','#9AC1CC','#907DA6'];
+  rows.forEach(function(row, ri) {
+    var pct1 = totYr1 > 0 ? Math.round(row.yr1/totYr1*100)+'%' : '—';
+    var pct2 = totYr2 > 0 ? Math.round(row.yr2/totYr2*100)+'%' : '—';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; font-weight:500; color:'+tableColors[ri]+';">'+row.label+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:center; color:#1a1a1a;">'+row.ftes+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:right; color:#1a1a1a;">'+fmtK(row.yr1)+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:right; color:#888; font-size:11px;">'+pct1+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:right; color:#1a1a1a;">'+fmtK(row.yr2)+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:right; color:#888; font-size:11px;">'+pct2+'</td>'+
+      '<td style="padding:7px 10px; border-bottom:0.5px solid #f0f0f0; text-align:right; font-weight:500; color:#003057;">'+fmtK(row.yr1+row.yr2)+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Totals row
+  var totTr = document.createElement('tr');
+  totTr.innerHTML =
+    '<td style="padding:8px 10px; font-weight:600; color:#003057; background:#f5f5f3;">TOTAL</td>'+
+    '<td style="padding:8px 10px; text-align:center; font-weight:600; color:#003057; background:#f5f5f3;">'+totFTE+'</td>'+
+    '<td style="padding:8px 10px; text-align:right; font-weight:600; color:#003057; background:#f5f5f3;">'+fmtK(totYr1)+'</td>'+
+    '<td style="padding:8px 10px; text-align:right; font-weight:600; color:#003057; background:#f5f5f3;">100%</td>'+
+    '<td style="padding:8px 10px; text-align:right; font-weight:600; color:#003057; background:#f5f5f3;">'+fmtK(totYr2)+'</td>'+
+    '<td style="padding:8px 10px; text-align:right; font-weight:600; color:#003057; background:#f5f5f3;">100%</td>'+
+    '<td style="padding:8px 10px; text-align:right; font-weight:700; color:#003057; background:#f5f5f3; font-size:13px;">'+fmtK(totRaise)+'</td>';
+  tbody.appendChild(totTr);
+
+  // Summary metrics
+  document.getElementById('inv-yr1').textContent    = fmtM(totYr1);
+  document.getElementById('inv-yr2').textContent    = fmtM(totYr2);
+  document.getElementById('inv-total').textContent  = fmtM(totRaise);
+}
+
+// Wire up all investment sliders
+['t1-comp','t2-comp',
+ 'pi-t1','pi-t2','pi-nre','pi-out','pi-cons',
+ 'ops-t1','ops-t2','ops-nre','ops-ga','ops-ai',
+ 'ce']
+  .forEach(function(id){
+    document.getElementById(id).addEventListener('input', calcInvestment);
+  });
+
+// Also recalc investment when salesforce sliders change
+['fx','r-comp','c-comp','p-comp','r-mult','r-new-mult','r-new-mult2',
+ 'c-mult','c-mult2','c-mult3','ramp','p-cycle','p-deal','p-close']
+  .forEach(function(id){
+    document.getElementById(id).addEventListener('input', calcInvestment);
+  });
+</script>
+
+<script>
+var YEARS = [2025,2026,2027,2028,2029,2030,2031];
+var SEG = {
+  research: [4267,4700,4935,5182,5441,5713,5999],
+  clinical: [220,1730,3070,5074,7191,11041,16669],
+  pharma:   [2680,1400,1000,1000,2000,3000,4000]
+};
+var PLAN_TOTAL = YEARS.map(function(_,i){
+  return SEG.research[i]+SEG.clinical[i]+SEG.pharma[i];
+});
+var EXISTING = { research: 3, clinical: 2, pharma: 0 };
+
+// Installed base renewal calculator for clinical segment
+// cumulativeDevices[i] = total devices sold through end of year i (index matches YEARS)
+// Returns array of IB revenue per year (indexes 1..6, matching YEARS[1..6])
+function calcInstalledBase(cumulativeDevices, devicePrice, replaceCycle, renewRate, svcPerDevice) {
+  var ibRevs = [];
+  for(var i=1; i<YEARS.length; i++){
+    var yr = YEARS[i];
+    // Devices eligible for renewal = devices sold replaceCycle years ago
+    var soldYearIdx = i - replaceCycle;
+    var eligibleDevices = soldYearIdx >= 0
+      ? (cumulativeDevices[soldYearIdx] || 0)
+      : 0;
+    var renewals   = eligibleDevices * (renewRate/100);
+    var renewRev   = renewals * devicePrice;
+    // Services revenue on full installed base (not just renewals)
+    var installedBase = cumulativeDevices[i] || 0;
+    var svcRev     = installedBase * svcPerDevice;
+    ibRevs.push({ yr:yr, renewals:Math.round(renewals), renewRev:renewRev, svcRev:svcRev, total:renewRev+svcRev });
+  }
+  return ibRevs;
+}
+
+// multPeriods: array of {fromYear, mult} sorted ascending
+// ibRevs: optional array of IB revenue per year to subtract from gap before hiring
+function calcSeg(targets, comp, multPeriods, fx, ramp, extra, lateExtra, freezeYears, ibRevs) {
+  var buf    = extra || 0;
+  var late   = lateExtra || 0;
+  var freeze = freezeYears || 0;
+  var cum=0, prevNew=0, base=targets[0];
+  // Track cumulative devices sold (= cumulative reps × assumed devices/rep/yr, simplified as modRev/devicePrice)
+  var rows=[];
+  for(var i=1;i<targets.length;i++){
+    var yr = YEARS[i];
+    var mult = multPeriods[0].mult;
+    for(var m=0;m<multPeriods.length;m++){
+      if(yr >= multPeriods[m].fromYear) mult = multPeriods[m].mult;
+    }
+    var prodM  = comp * mult * fx;
+    var prodY1 = prodM * ramp;
+    var carry  = prevNew*(prodM-prodY1);
+    var avail  = base+carry;
+    // subtract installed base revenue from gap — these come without new reps
+    var ibRev  = (ibRevs && ibRevs[i-1]) ? ibRevs[i-1].total : 0;
+    var gap    = Math.max(0, targets[i] - avail - ibRev);
+    var yearBuf= (yr >= 2030) ? buf+late : buf;
+    var newR;
+    if(i <= freeze) {
+      newR = 0;
+    } else {
+      newR = Math.ceil(gap/Math.max(prodY1,1)) + yearBuf;
+    }
+    cum += newR;
+    var mod = avail + newR*prodY1 + ibRev;
+    base = avail + newR*prodY1; // carry forward rep-driven revenue only (IB recalculated each yr)
+    prevNew = newR;
+    rows.push({yr:yr, target:targets[i], modRev:mod, ibRev:ibRev, newReps:newR, cumReps:cum});
+  }
+  return rows;
+}
+
+function calcPharma(targets, cycleMonths, dealSize, closeRate) {
+  var dealsPerYr = (12/cycleMonths)*closeRate;
+  var revPerBD   = dealsPerYr*dealSize;
+  var rows=[];
+  for(var i=1;i<targets.length;i++){
+    var bdTeam = YEARS[i] >= 2030 ? 2 : 1;
+    rows.push({yr:YEARS[i],target:targets[i],bdTeam:bdTeam,expRev:Math.round(bdTeam*revPerBD),revPerBD:revPerBD});
+  }
+  return rows;
+}
+
+function fmt(n){ return '$'+Math.round(n).toLocaleString(); }
+
+function calc() {
+  var fx        = parseFloat(document.getElementById('fx').value);
+  var ramp      = parseFloat(document.getElementById('ramp').value);
+  var rComp     = parseFloat(document.getElementById('r-comp').value);
+  var rMult     = parseFloat(document.getElementById('r-mult').value);
+  var rNewMult  = parseFloat(document.getElementById('r-new-mult').value);
+  var rNewMult2 = parseFloat(document.getElementById('r-new-mult2').value);
+  var cComp     = parseFloat(document.getElementById('c-comp').value);
+  var cMult     = parseFloat(document.getElementById('c-mult').value);
+  var cMult2    = parseFloat(document.getElementById('c-mult2').value);
+  var cMult3    = parseFloat(document.getElementById('c-mult3').value);
+  var pComp     = parseFloat(document.getElementById('p-comp').value);
+  var pCycle    = parseFloat(document.getElementById('p-cycle').value);
+  var pDeal     = parseFloat(document.getElementById('p-deal').value);
+  var pClose    = parseFloat(document.getElementById('p-close').value)/100;
+
+  // Installed base params
+  var ibPrice = parseFloat(document.getElementById('ib-price').value);
+  var ibCycle = parseInt(document.getElementById('ib-cycle').value);
+  var ibRate  = parseFloat(document.getElementById('ib-rate').value);
+  var ibSvc   = parseFloat(document.getElementById('ib-svc').value);
+
+  document.getElementById('fx-out').textContent          = fx.toFixed(2);
+  document.getElementById('ramp-out').textContent        = Math.round(ramp*100)+'%';
+  document.getElementById('r-comp-out').textContent      = '€'+rComp+'K';
+  document.getElementById('r-mult-out').textContent      = rMult+'×';
+  document.getElementById('r-new-mult-out').textContent  = rNewMult+'×';
+  document.getElementById('r-new-mult2-out').textContent = rNewMult2+'×';
+  document.getElementById('c-comp-out').textContent      = '€'+cComp+'K';
+  document.getElementById('c-mult-out').textContent      = cMult+'×';
+  document.getElementById('c-mult2-out').textContent     = cMult2+'×';
+  document.getElementById('c-mult3-out').textContent     = cMult3+'×';
+  document.getElementById('p-comp-out').textContent      = '€'+pComp+'K';
+  document.getElementById('p-cycle-out').textContent     = pCycle+' mo';
+  document.getElementById('p-deal-out').textContent      = fmt(pDeal)+'K';
+  document.getElementById('p-close-out').textContent     = Math.round(pClose*100)+'%';
+  document.getElementById('ib-price-out').textContent    = '$'+ibPrice+'K';
+  document.getElementById('ib-cycle-out').textContent    = ibCycle+' yrs';
+  document.getElementById('ib-rate-out').textContent     = ibRate+'%';
+  document.getElementById('ib-svc-out').textContent      = '$'+ibSvc+'K';
+
+  var rProd     = rComp*rMult*fx;
+  var rProdNew  = rComp*rNewMult*fx;
+  var rProdNew2 = rComp*rNewMult2*fx;
+  var cProd     = cComp*cMult*fx;
+  var cProd2    = cComp*cMult2*fx;
+  var cProd3    = cComp*cMult3*fx;
+  var cRamp     = 0.25;
+
+  document.getElementById('r-prod').textContent      = fmt(rProd)+'K';
+  document.getElementById('r-prod1').textContent     = fmt(rProd*ramp)+'K';
+  document.getElementById('r-new-prod').textContent  = fmt(rProdNew)+'K';
+  document.getElementById('r-new-prod2').textContent = fmt(rProdNew2)+'K';
+  document.getElementById('c-prod').textContent      = fmt(cProd)+'K';
+  document.getElementById('c-prod1').textContent     = fmt(cProd*cRamp)+'K (25% ramp)';
+  document.getElementById('c-prod2').textContent     = fmt(cProd2)+'K';
+  document.getElementById('c-prod3').textContent     = fmt(cProd3)+'K';
+
+  var dealsPerYr = (12/pCycle)*pClose;
+  var revPerBD   = dealsPerYr*pDeal;
+  document.getElementById('p-deals-yr').textContent = dealsPerYr.toFixed(1)+' deals/yr';
+  document.getElementById('p-rev-bd').textContent   = fmt(revPerBD)+'K/yr';
+
+  // ── First pass: get cumulative clinical devices sold per year
+  // We approximate devices sold = rep-driven clinical revenue / device price
+  // Do a dry run of cRows without IB to get base cumulative devices
+  var cPeriods = [
+    {fromYear:2026, mult:cMult},
+    {fromYear:2028, mult:cMult2},
+    {fromYear:2030, mult:cMult3}
+  ];
+  var cRowsDry = calcSeg(SEG.clinical, cComp, cPeriods, fx, cRamp, 1, 1, 0, null);
+
+  // Build cumulative devices array indexed by YEARS position
+  // Include 2025 base: $220K / $18K ASP ≈ 12 devices
+  var cumDevices = [Math.round(SEG.clinical[0] / ibPrice)];
+  for(var i=0;i<cRowsDry.length;i++){
+    var newDevices = Math.round((cRowsDry[i].modRev - (i>0?cRowsDry[i-1].modRev:SEG.clinical[0])) / ibPrice);
+    cumDevices.push((cumDevices[cumDevices.length-1]||0) + Math.max(0,newDevices));
+  }
+
+  // ── Calculate IB revenues from cumulative devices
+  var ibRevs = calcInstalledBase(cumDevices, ibPrice, ibCycle, ibRate, ibSvc);
+
+  // Update IB summary display
+  var ibTotalStr = ibRevs.map(function(r){ return r.yr+': '+fmt(r.total)+'K'; }).join(' · ');
+  document.getElementById('ib-summary').textContent = ibTotalStr;
+
+  // ── Final pass: calcSeg with IB revenues reducing new hire gap
+  var rPeriods = [
+    {fromYear:2027, mult:rNewMult},
+    {fromYear:2029, mult:rNewMult2}
+  ];
+  var rRows = calcSeg(SEG.research, rComp, rPeriods, fx, ramp,  0, 0, 1, null);
+  var cRows = calcSeg(SEG.clinical, cComp, cPeriods, fx, cRamp, 1, 1, 0, ibRevs);
+  var pRows = calcPharma(SEG.pharma, pCycle, pDeal, pClose);
+
+  var tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  var totR=0, totC=0;
+
+  for(var i=0;i<rRows.length;i++){
+    totR = rRows[i].cumReps;
+    totC = cRows[i].cumReps;
+    var totalMod = Math.round(rRows[i].modRev + cRows[i].modRev + pRows[i].expRev);
+    var planTot  = PLAN_TOTAL[i+1];
+    var totalHC  = (EXISTING.research+rRows[i].cumReps) + (EXISTING.clinical+cRows[i].cumReps) + pRows[i].bdTeam;
+    var ibDisplay = cRows[i].ibRev > 0 ? '<span style="font-size:11px;color:#185FA5;">'+fmt(cRows[i].ibRev)+'K</span>' : '<span style="color:#ccc;font-size:11px;">—</span>';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+rRows[i].yr+'</td>'+
+      '<td>'+fmt(rRows[i].target)+'K</td>'+
+      '<td><span class="badge b-r">+'+rRows[i].newReps+'</span></td>'+
+      '<td><span class="badge b-r">'+(EXISTING.research+rRows[i].cumReps)+'</span></td>'+
+      '<td>'+fmt(cRows[i].target)+'K</td>'+
+      '<td><span class="badge b-c">+'+cRows[i].newReps+'</span></td>'+
+      '<td><span class="badge b-c">'+(EXISTING.clinical+cRows[i].cumReps)+'</span></td>'+
+      '<td>'+ibDisplay+'</td>'+
+      '<td>'+fmt(pRows[i].target)+'K</td>'+
+      '<td><span class="badge b-p">'+pRows[i].bdTeam+' BD</span></td>'+
+      '<td>'+fmt(pRows[i].expRev)+'K</td>'+
+      '<td><strong>'+fmt(totalMod)+'K</strong></td>'+
+      '<td style="color:#888;">'+fmt(planTot)+'K</td>'+
+      '<td><span class="badge b-t">'+totalHC+'</span></td>';
+    tbody.appendChild(tr);
+  }
+
+  var lastPBD = pRows[pRows.length-1].bdTeam;
+  var yr1HC   = (EXISTING.research+rRows[0].cumReps) + (EXISTING.clinical+cRows[0].cumReps) + pRows[0].bdTeam;
+  document.getElementById('s-total').textContent = (EXISTING.research+totR)+(EXISTING.clinical+totC)+lastPBD;
+  document.getElementById('s-r').textContent     = totR;
+  document.getElementById('s-c').textContent     = totC;
+  document.getElementById('s-p').textContent     = Math.max(0, lastPBD - EXISTING.pharma);
+  document.getElementById('s-yr1').textContent   = EXISTING.research + EXISTING.clinical + EXISTING.pharma;
+
+  if(typeof calcInvestment === 'function') calcInvestment();
+}
+
+['fx','ramp','r-comp','r-mult','r-new-mult','r-new-mult2',
+ 'c-comp','c-mult','c-mult2','c-mult3',
+ 'ib-price','ib-cycle','ib-rate','ib-svc',
+ 'p-comp','p-cycle','p-deal','p-close']
+  .forEach(function(id){
+    document.getElementById(id).addEventListener('input', calc);
+  });
+
+calc();
+// investment model initial render handled inside calc() via sync call
+</script>
+</body>
+</html>
