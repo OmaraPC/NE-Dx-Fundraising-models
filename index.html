@@ -47,8 +47,8 @@
   .rev-met-lbl { font-size: 11px; color: #888; margin-bottom: 3px; }
   .rev-met-val { font-size: 20px; font-weight: 500; color: #1a1a1a; }
   .rev-met-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
-  .chart-title {
-    font-size: 13px; font-weight: 600; color: #003057;
+  .rev-chart-title {
+    font-size: 16px; font-weight: 600; color: #003057;
     text-align: center; margin-bottom: 8px; letter-spacing: 0.02em;
     text-transform: uppercase;
   }
@@ -67,17 +67,18 @@
   .summary-table td:first-child { text-align: left; }
   .summary-table tr { border-bottom: 0.5px solid #e8e8e8; }
   .summary-table tr:last-child { border-bottom: none; }
-  .row-header { background: #7BA1B6; }
-  .row-header th { color: #fff; font-weight: 700; font-size: 13px; }
-  .row-growth td { background: #7BA1B6; color: #fff; font-weight: 600; }
-  .row-growth td:first-child { color: #003057; }
+  .summary-table .row-header { background: #003D66 !important; }
+  .summary-table .row-header th { color: #fff !important; font-weight: 700; font-size: 13px; }
+  .summary-table .row-total { background: #003D66 !important; }
+  .summary-table .row-total td { color: #fff !important; font-weight: 700; font-size: 13px; }
+  .summary-table .row-growth td { background: #fff !important; color: #7BA1B6 !important; font-weight: 700; }
   .seg-name { font-weight: 600; display: block; }
   .seg-sub { font-size: 11px; font-weight: 400; color: #aaa; display: block; margin-top: 1px; }
   .row-seg-r { background: #fff; }
   .row-seg-p { background: #fafaf8; }
   .row-seg-c { background: #fff; }
   .row-seg-r td, .row-seg-p td, .row-seg-c td { color: #1a1a1a; }
-  .row-total { background: #7BA1B6; }
+  .row-total { background: #003D66; }
   .row-total td { color: #fff; font-weight: 700; font-size: 13px; }
 
   .rev-data-note { margin-top: 1.5rem; font-size: 12px; color: #aaa; }
@@ -98,7 +99,7 @@
     .row-seg-r, .row-seg-c { background: #222; }
     .row-seg-p { background: #1e1e1e; }
     .row-seg-r td, .row-seg-p td, .row-seg-c td { color: #e8e8e8; }
-    .row-growth td { background: #7BA1B6; color: #fff; font-weight: 600; }
+    .row-growth td { background: #fff !important; color: #7BA1B6 !important; font-weight: 700; }
   }
 
 
@@ -223,13 +224,13 @@
 
 <div class="rev-toggle-row">
   <div class="rev-tog" id="tog-research" onclick="toggleSeg('research')">
-    <span class="rev-tog-dot" style="background:#BA7517;"></span> Research
+    <span class="rev-tog-dot" style="background:#003D66;"></span> Research
   </div>
   <div class="rev-tog" id="tog-clinical" onclick="toggleSeg('clinical')">
-    <span class="rev-tog-dot" style="background:#1D9E75;"></span> Clinical
+    <span class="rev-tog-dot" style="background:#E69B2D;"></span> Clinical
   </div>
   <div class="rev-tog" id="tog-pharma" onclick="toggleSeg('pharma')">
-    <span class="rev-tog-dot" style="background:#378ADD;"></span> Pharma
+    <span class="rev-tog-dot" style="background:#9E7BA6;"></span> Pharma
   </div>
   <div class="rev-tog" id="tog-total" onclick="toggleSeg('total')">
     <span class="rev-tog-dot" style="background:#888; border-radius:50%;"></span> Total line
@@ -247,7 +248,7 @@
   <div class="rev-met"><div class="rev-met-lbl">CAGR 2025–31</div><div class="rev-met-val" id="mcagr">24%</div><div class="rev-met-sub">6-year</div></div>
 </div>
 
-<div class="chart-title">5Y Forecast with $10M Investment</div>
+<div class="rev-chart-title">5Y Forecast with $10M Investment</div>
 <div class="rev-chart-wrap">
   <canvas id="rc" role="img" aria-label="Stacked bar chart of Neuroelectrics Dx revenue by segment 2025 to 2031.">Revenue by segment 2022–2030.</canvas>
 </div>
@@ -262,19 +263,11 @@
 <div class="summary-wrap">
   <table class="summary-table">
     <thead>
-      <tr class="row-header">
-        <th>Total growth</th>
-        <th>2026</th>
-        <th>2027</th>
-        <th>2028</th>
-        <th>2029</th>
-        <th>2030</th>
-        <th>2031</th>
-      </tr>
+      <tr class="row-header"><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:left;">Total growth</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2026</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2027</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2028</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2029</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2030</th><th style="background:#003D66;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;text-align:right;">2031</th></tr>
     </thead>
     <tbody>
       <tr class="row-growth">
-        <td><span class="seg-name">Growth</span></td>
+        <td><span class="seg-name">Growth %</span></td>
         <td id="tg-2026">—</td>
         <td id="tg-2027">—</td>
         <td id="tg-2028">—</td>
@@ -284,7 +277,7 @@
       </tr>
       <tr class="row-seg-r">
         <td>
-          <span class="seg-name" style="color:#BA7517;">Research</span>
+          <span class="seg-name" style="color:#003D66;">Research</span>
           <span class="seg-sub">selling since 2011</span>
         </td>
         <td id="r-2026">—</td>
@@ -296,7 +289,7 @@
       </tr>
       <tr class="row-seg-p">
         <td>
-          <span class="seg-name" style="color:#378ADD;">Pharma</span>
+          <span class="seg-name" style="color:#9E7BA6;">Pharma</span>
           <span class="seg-sub">passively engaged since 2022</span>
         </td>
         <td id="p-2026">—</td>
@@ -308,7 +301,7 @@
       </tr>
       <tr class="row-seg-c">
         <td>
-          <span class="seg-name" style="color:#1D9E75;">EEG Clinical</span>
+          <span class="seg-name" style="color:#E69B2D;">Clinical</span>
           <span class="seg-sub">started to target since 2024</span>
         </td>
         <td id="c-2026">—</td>
@@ -318,8 +311,7 @@
         <td id="c-2030">—</td>
         <td id="c-2031">—</td>
       </tr>
-      <tr class="row-total">
-        <td>BASE CASE</td>
+      <tr class="row-total"><td style="background:#003D66;color:#fff;font-weight:700;padding:9px 16px;text-align:left;">BASE CASE</td>
         <td id="tot-2026">—</td>
         <td id="tot-2027">—</td>
         <td id="tot-2028">—</td>
@@ -349,9 +341,9 @@ var TOTALS = LABELS.map(function(_,i) {
 });
 
 var COLORS = {
-  research: { solid: '#BA7517', light: '#EF9F27' },
-  clinical: { solid: '#1D9E75', light: '#5DCAA5' },
-  pharma:   { solid: '#378ADD', light: '#85B7EB' },
+  research: { solid: '#5A7A96', light: '#A8BAC8' },
+  clinical: { solid: '#E0A44A', light: '#F0C27A' },
+  pharma:   { solid: '#9E7BA6', light: '#C4A8CC' },
 };
 
 var state = { research: true, clinical: true, pharma: true, total: true, view: 'stacked' };
@@ -510,11 +502,16 @@ function updateTable() {
     var g   = Math.round((tot - prev) / prev * 100);
     prev    = tot;
 
-    document.getElementById('tg-'  + yr).textContent = g + '%';
+    var _bc='style="background:#7BA1B6;color:#fff;font-weight:700;padding:9px 16px;"';
+  document.getElementById('tg-'  + yr).textContent = g + '%';
     document.getElementById('r-'   + yr).textContent = fmtCell(RAW.research[i]);
     document.getElementById('p-'   + yr).textContent = fmtCell(RAW.pharma[i]);
     document.getElementById('c-'   + yr).textContent = fmtCell(RAW.clinical[i]);
-    document.getElementById('tot-' + yr).textContent = fmtCell(tot);
+    var totEl = document.getElementById('tot-' + yr);
+    totEl.textContent = fmtCell(tot);
+    totEl.style.background = '#003D66';
+    totEl.style.color = '#fff';
+    totEl.style.fontWeight = '700';
   });
 }
 
@@ -737,6 +734,7 @@ updateTable();
 
   </div><!-- /area-grid --></div>
 
+<div style="border-top: 2px solid #003057; margin: 2.5rem 0 2rem; padding-top: 2rem;">
 <h1>Neuroelectrics Dx — Salesforce Sizing Model</h1>
 <p class="subtitle">Research · Clinical · Pharma &nbsp;·&nbsp; Confidential</p>
 
@@ -1348,6 +1346,8 @@ function calc() {
 calc();
 // investment model initial render handled inside calc() via sync call
 </script>
+
+</div>
 
 </body>
 </html>
