@@ -517,7 +517,7 @@ function updateTable() {
 
 function updateMetrics() {
   var vis   = ['research', 'clinical', 'pharma'].filter(function(s) { return state[s]; });
-  var v2025 = vis.reduce(function(a, s) { return a + RAW[s][3]; }, 0);
+  var v2025 = vis.reduce(function(a, s) { return a + RAW[s][0]; }, 0);
   var v2030 = vis.reduce(function(a, s) { return a + RAW[s][6]; }, 0);
   var cagr  = v2025 > 0 ? Math.round((Math.pow(v2030 / v2025, 1/6) - 1) * 100) : 0;
   document.getElementById('m25').textContent  = '$' + (v2025 / 1000).toFixed(1) + 'M';
