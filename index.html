@@ -1177,7 +1177,7 @@ function calcSeg(targets, comp, multPeriods, fx, ramp, extra, lateExtra, freezeY
     }
     cum += newR;
     var mod = avail + newR*prodY1 + ibRev;
-    base = avail + newR*prodY1; // carry forward rep-driven revenue only (IB recalculated each yr)
+    base = mod; // carry full modRev forward including IB (IB is recurring and should compound)
     prevNew = newR;
     rows.push({yr:yr, target:targets[i], modRev:mod, ibRev:ibRev, newReps:newR, cumReps:cum});
   }
